@@ -1,0 +1,3 @@
+body { background: #f8f9fa; }
+.text-primary { color: #092c63 !important; }
+.bg-primary, .btn-primary { background-color: #092c63 !important; border-color: #092c63 !important; }
