@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // NOTA: Inyectar los valores iniciales en los campos.
+    // NOTA: Inyectar los valores iniciales en los campos.ss
     if (document.getElementById('edit-nombre')) {
         document.getElementById('edit-nombre').value = usuarioMock.nombre;
         document.getElementById('edit-correo').value = usuarioMock.correo;
