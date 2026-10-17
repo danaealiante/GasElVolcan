@@ -24,4 +24,3 @@ npm run test:coverage
 npm run build
 ```
 
-Karma usa `ChromeHeadless`; si Chrome no esta en el PATH, configura `CHROME_BIN` antes de ejecutar las pruebas.
