@@ -9,7 +9,7 @@
 | Navegacion React Router | No tenia Router | Cumple | Rutas `/`, `/productos` y `/carrito` en `src/App.jsx` |
 | Carrito migrado a estado React | No tenia carrito React | Cumple | `useState`, `useEffect`, `src/utils/cart.js` y persistencia en `localStorage` |
 | Props, estados y Bootstrap responsivo | Usaba Tailwind y JS imperativo | Cumple | Props, hooks, grid `col-12 col-md-6 col-lg-4` y navbar colapsable |
-| Formularios con validacion React | Validacion imperativa en `assets/js/main.js` | Cumple | `OrderForm.jsx` y `src/utils/validation.js` |
+| Formularios con validacion React | Validacion imperativa en JavaScript | Cumple | `OrderForm.jsx`, `Registro.jsx` y `src/utils/validation.js` |
 | 10 pruebas Jasmine/Karma | No tenia pruebas configuradas | Cumple | 8 pruebas de logica y 2 de componentes en `src/**/*.spec.jsx` |
 | Mocks/espias | No tenia spies | Cumple | `jasmine.createSpy` en la prueba de `ProductCard` |
 | Reporte de cobertura | No tenia cobertura | Cumple | `karma-coverage`, `npm run test:coverage`, carpeta `coverage/` |
@@ -24,3 +24,4 @@ npm run test:coverage
 npm run build
 ```
 
+Las pantallas de registro, inicio de sesión, perfil, pedidos y administración están implementadas como rutas React dentro de `src/pages/`. El frontend usa `index.html` como único punto de entrada; las páginas HTML y scripts antiguos fueron retirados.

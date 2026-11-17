@@ -11,6 +11,8 @@ export function Navbar({ itemCount }) {
         <div className="navbar-nav me-auto">
           <Link className="nav-link" to="/">Inicio</Link>
           <Link className="nav-link" to="/productos">Cilindros</Link>
+          <Link className="nav-link" to="/mis-pedidos">Mis pedidos</Link>
+          <Link className="nav-link" to="/registro">Registro</Link>
           <a className="nav-link" href="/#nosotros">Nosotros</a>
         </div>
         <Link className="btn btn-warning fw-bold" to="/carrito">Carrito ({itemCount})</Link>
