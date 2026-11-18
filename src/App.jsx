@@ -4,19 +4,40 @@ import { Navbar } from './components/Navbar';
 import { ProductCard } from './components/ProductCard';
 import { Cart } from './components/Cart';
 import { OrderForm } from './components/OrderForm';
-import { products } from './data/products';
+import { products as fallbackProducts } from './data/products';
 import { addToCart, removeFromCart } from './utils/cart';
+import { getProductos } from './services/api';
 import { Registro } from './pages/Registro';
 import { Login } from './pages/Login';
 import { EditarPerfil } from './pages/EditarPerfil';
 import { MisPedidos } from './pages/MisPedidos';
 import { AdminUsuarios } from './pages/AdminUsuarios';
 
-function Products({ onAdd }) { return <><h1 className="h2 mb-4">Nuestros formatos de gas licuado</h1><div className="row g-4">{products.map((product) => <div className="col-12 col-md-6 col-lg-4" key={product.id}><ProductCard product={product} onAdd={onAdd} /></div>)}</div></>; }
-function Home({ onAdd }) { const navigate = useNavigate(); return <><div className="row align-items-center g-4 py-5"><div className="col-lg-6"><span className="badge text-bg-warning mb-3">Servicio local Chillan</span><h1 className="display-5 fw-bold text-primary">Distribucion rapida directamente a tu hogar</h1><p className="lead">Gas licuado seguro y confiable en Chillan y comunas aledanas.</p><Link className="btn btn-primary btn-lg" to="/productos">Ver cilindros</Link></div><div className="col-lg-6"><div className="card p-4 shadow"><OrderForm onSubmit={() => navigate('/productos')} /></div></div></div><section id="nosotros" className="py-4"><h2>Sobre Gas El Volcan</h2><p>Desde 1998 servimos a la comunidad de Chillan garantizando entregas puntuales.</p></section><h2 className="h3 mt-4">Compra rapido</h2><div className="row g-4 mt-1">{products.map((product) => <div className="col-12 col-md-6 col-lg-4" key={product.id}><ProductCard product={product} onAdd={onAdd} /></div>)}</div></>; }
+function normalizeProduct(product, index) {
+  return {
+    id: product.id ?? product.codigo ?? `api-${index}`,
+    name: product.name ?? product.nombre ?? `Producto ${index + 1}`,
+    description: product.description ?? product.descripcion ?? '',
+    price: Number(product.price ?? product.precio ?? 0),
+    featured: Boolean(product.featured)
+  };
+}
+
+function Products({ onAdd, products }) { return <><h1 className="h2 mb-4">Nuestros formatos de gas licuado</h1><div className="row g-4">{products.map((product) => <div className="col-12 col-md-6 col-lg-4" key={product.id}><ProductCard product={product} onAdd={onAdd} /></div>)}</div></>; }
+function Home({ onAdd, products }) { const navigate = useNavigate(); return <><div className="row align-items-center g-4 py-5"><div className="col-lg-6"><span className="badge text-bg-warning mb-3">Servicio local Chillan</span><h1 className="display-5 fw-bold text-primary">Distribucion rapida directamente a tu hogar</h1><p className="lead">Gas licuado seguro y confiable en Chillan y comunas aledanas.</p><Link className="btn btn-primary btn-lg" to="/productos">Ver cilindros</Link></div><div className="col-lg-6"><div className="card p-4 shadow"><OrderForm onSubmit={() => navigate('/productos')} /></div></div></div><section id="nosotros" className="py-4"><h2>Sobre Gas El Volcan</h2><p>Desde 1998 servimos a la comunidad de Chillan garantizando entregas puntuales.</p></section><h2 className="h3 mt-4">Compra rapido</h2><div className="row g-4 mt-1">{products.map((product) => <div className="col-12 col-md-6 col-lg-4" key={product.id}><ProductCard product={product} onAdd={onAdd} /></div>)}</div></>; }
 export default function App() {
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('gas-cart') || '[]'));
+  const [products, setProducts] = useState(fallbackProducts);
+  const [apiStatus, setApiStatus] = useState('Conectando...');
   useEffect(() => { localStorage.setItem('gas-cart', JSON.stringify(cart)); }, [cart]);
+  useEffect(() => {
+    getProductos()
+      .then((items) => {
+        setProducts(items.map(normalizeProduct));
+        setApiStatus('API conectada');
+      })
+      .catch(() => setApiStatus('API no disponible: usando datos locales'));
+  }, []);
   const add = (product) => setCart((current) => addToCart(current, product));
-  return <><Navbar itemCount={cart.reduce((sum, item) => sum + item.quantity, 0)} /><main className="container py-4"><Routes><Route path="/" element={<Home onAdd={add} />} /><Route path="/productos" element={<Products onAdd={add} />} /><Route path="/carrito" element={<><h1 className="h2 mb-4">Tu carrito</h1><Cart items={cart} onRemove={(id) => setCart((current) => removeFromCart(current, id))} onClear={() => setCart([])} /></>} /><Route path="/registro" element={<Registro />} /><Route path="/login" element={<Login />} /><Route path="/admin/login" element={<Login />} /><Route path="/admin/usuarios" element={<AdminUsuarios />} /><Route path="/mis-pedidos" element={<MisPedidos />} /><Route path="/editar-perfil" element={<EditarPerfil />} /><Route path="/perfil" element={<Navigate to="/editar-perfil" replace />} /><Route path="*" element={<div className="alert alert-warning">Pagina no encontrada</div>} /></Routes></main><footer className="bg-primary text-white text-center py-4 mt-5">Gas El Volcan - Chillan</footer></>;
+  return <><Navbar itemCount={cart.reduce((sum, item) => sum + item.quantity, 0)} /><main className="container py-4"><div className="small text-secondary text-end">{apiStatus}</div><Routes><Route path="/" element={<Home onAdd={add} products={products} />} /><Route path="/productos" element={<Products onAdd={add} products={products} />} /><Route path="/carrito" element={<><h1 className="h2 mb-4">Tu carrito</h1><Cart items={cart} onRemove={(id) => setCart((current) => removeFromCart(current, id))} onClear={() => setCart([])} /></>} /><Route path="/registro" element={<Registro />} /><Route path="/login" element={<Login />} /><Route path="/admin/login" element={<Login />} /><Route path="/admin/usuarios" element={<AdminUsuarios />} /><Route path="/mis-pedidos" element={<MisPedidos />} /><Route path="/editar-perfil" element={<EditarPerfil />} /><Route path="/perfil" element={<Navigate to="/editar-perfil" replace />} /><Route path="*" element={<div className="alert alert-warning">Pagina no encontrada</div>} /></Routes></main><footer className="bg-primary text-white text-center py-4 mt-5">Gas El Volcan - Chillan</footer></>;
 }
