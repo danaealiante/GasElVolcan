@@ -1,14 +1,12 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../data/products';
 import { cartTotal } from '../utils/cart';
-
-export function Cart({ items, onRemove, onClear }) {
-  if (!items.length) return <div className="alert alert-info">Tu carrito esta vacio.</div>;
-  return <section aria-label="Carrito de compras">
-    {items.map((item) => <div className="d-flex align-items-center justify-content-between border-bottom py-3" key={item.id}>
-      <div><strong>{item.name}</strong><div className="text-secondary">{item.quantity} x {formatCurrency(item.price)}</div></div>
-      <button className="btn btn-outline-danger btn-sm" onClick={() => onRemove(item.id)}>Quitar</button>
-    </div>)}
-    <div className="d-flex justify-content-between fs-4 fw-bold mt-4"><span>Total</span><span>{formatCurrency(cartTotal(items))}</span></div>
-    <button className="btn btn-outline-secondary mt-3" onClick={onClear}>Vaciar carrito</button>
-  </section>;
+import { orderPayload } from '../utils/access';
+import { api } from '../services/api';
+export function Cart({items,onRemove,onClear,user,phone,onOrdered}){
+ const [direccion,setDireccion]=useState('');const [telefono,setTelefono]=useState(phone||user?.telefono||'');const [error,setError]=useState('');const [busy,setBusy]=useState(false);const navigate=useNavigate();
+ async function submit(e){e.preventDefault();if(busy||!items.length)return;setBusy(true);setError('');try{const b=await api.order(orderPayload(items,direccion,telefono));onClear();onOrdered();navigate('/mis-pedidos',{state:{confirmation:`Pedido #${b.id} recibido. Total: ${formatCurrency(b.total)}`},replace:true});}catch(e){setError(e.message);}finally{setBusy(false);}}
+ if(!items.length)return <div className="alert alert-info">Tu carrito está vacío. <Link to="/productos">Ver cilindros</Link></div>;
+ return <section aria-label="Carrito de compras"><div className="card card-body">{items.map(item=><div key={item.id} className="d-flex justify-content-between align-items-center border-bottom py-3"><div><strong>{item.name}</strong><div>{item.quantity} × {formatCurrency(item.price)}</div></div><button disabled={busy} className="btn btn-outline-danger btn-sm" onClick={()=>onRemove(item.id)}>Quitar unidad</button></div>)}<div className="d-flex justify-content-between fs-4 fw-bold mt-4"><span>Total estimado</span><span>{formatCurrency(cartTotal(items))}</span></div><button disabled={busy} className="btn btn-outline-secondary mt-3" onClick={onClear}>Vaciar carrito</button></div>{!user?<p className="alert alert-info mt-3"><Link to="/login">Inicia sesión</Link> para confirmar tu pedido.</p>:<form onSubmit={submit} className="card card-body mt-4 d-grid gap-3"><h2 className="h4">Datos de despacho</h2><label>Dirección<input required maxLength={250} className="form-control" value={direccion} onChange={e=>setDireccion(e.target.value)}/></label><label>Teléfono<input required type="tel" pattern="[+]?[0-9]{8,12}" className="form-control" value={telefono} onChange={e=>setTelefono(e.target.value)}/></label>{error&&<div role="alert" className="alert alert-danger">{error}</div>}<button disabled={busy} className="btn btn-warning fw-bold">{busy?'Enviando…':'Confirmar pedido'}</button><small>El servidor verifica el stock y calcula el precio definitivo.</small></form>}</section>;
 }

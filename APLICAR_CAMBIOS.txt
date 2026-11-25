@@ -1,0 +1,7 @@
+ACTUALIZACIÓN FRONTEND V2 — base: commit 6a5842788a92b42fe46fa252ac50392523babf5b
+
+1. Descarga el ZIP de tu repositorio frontend desde GitHub (rama admin-usuario.js.html) o utiliza el proyecto local actualizado.
+2. Extrae este ZIP. Copia TODO su contenido (incluidas carpetas ocultas .github y .env.example) encima de la raíz del frontend, donde está package.json. Acepta reemplazar los archivos. NO elimines package.json, package-lock.json, index.html, vite.config.js, karma.conf.cjs, src/utils/cart.js, src/utils/validation.js, src/styles.css ni las pruebas originales.
+3. En IntelliJ abre el proyecto. Ejecuta npm ci, npm run build y npm test, además de node --test tests/api.test.mjs. El workflow comprueba también la API real en MySQL tras subirlo. No ejecutar real-api.mjs contra una base de datos real de usuarios.
+4. Publica los cambios en una rama nueva llamada integracion-backend-v2, manteniendo el historial anterior. Revisa Actions antes de integrar la rama principal. No subas node_modules, dist, .env.local ni claves.
+5. Sigue README.md para la configuración y la demostración AWS.

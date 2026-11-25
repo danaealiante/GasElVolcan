@@ -1,0 +1,61 @@
+name: Frontend e integración V2
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-temporal
+          MYSQL_DATABASE: gas_ci
+          MYSQL_USER: gas_ci
+          MYSQL_PASSWORD: ci-temporal
+        ports: ['3306:3306']
+        options: --health-cmd="mysqladmin ping -h localhost -u root -pci-temporal" --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: node --test tests/api.test.mjs
+      - uses: actions/checkout@v4
+        with:
+          repository: danaealiante/GasElVolcan-backendV2
+          ref: cce24182bd87ae53796fd9e767fb80562f284ea2
+          path: backend-ci
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: backend-ci/pom.xml
+      - run: mvn -B -f backend-ci/pom.xml -DskipTests package
+      - name: Ejecutar backend y probar cliente REST real
+        shell: bash
+        env:
+          DB_URL: jdbc:mysql://127.0.0.1:3306/gas_ci?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+          DB_USER: gas_ci
+          DB_PASSWORD: ci-temporal
+          ADMIN_EMAIL: admin@ci.local
+          ADMIN_PASSWORD: PruebaCITemporal123!
+          TEST_ADMIN_EMAIL: admin@ci.local
+          TEST_ADMIN_PASSWORD: PruebaCITemporal123!
+          ALLOW_DESTRUCTIVE_TESTS: 'yes'
+        run: |
+          export JWT_SECRET=$(openssl rand -base64 32)
+          java -jar backend-ci/target/gaselvolcan-backend-2.0.0.jar > /tmp/gas-ci.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true; tail -60 /tmp/gas-ci.log' EXIT
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/actuator/health; then break; fi
+            sleep 2
+          done
+          curl -fsS http://localhost:8080/actuator/health
+          node tests/real-api.mjs
